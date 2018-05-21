@@ -13,7 +13,7 @@ def drawBoard(board):
     print(board[4] + '|' + board[5] + "|" + board[6])
     print("-+-+")
     print(board[1] + '|' + board[2] + "|" + board[3])
-def inputPlayer():
+def inputPlayerLetter():
     #Let the user type which letter they want to be
     #Returns a list with the player's letter  as the first item and
     #computer's letter as the second .
@@ -53,11 +53,11 @@ def getBoardCopy(board):
     return boardCopy
 def isSpaceFree(board, move):
     #Return True if the passes move is free on the pass board.
-    return board[move] == ''
-def getPlayerMove(baord):
+    return board[move] == ' '
+def getPlayerMove(board):
     #Let the player enter their move
-    move = ''
-    while move not in '1 2 3 4 5 6 7 8 9'.split() or not isSpaceFree(baord, int(move)):
+    move = ' '
+    while move not in '1 2 3 4 5 6 7 8 9'.split() or not isSpaceFree(board, int(move)):
         print("What is your next move? (1-9)")
         move = input()
     return int(move)
@@ -76,4 +76,97 @@ def chooseRandomMoveFromList(board, movelist):
     else:
         return None
 
-#def getComputerMove(board, computerLeter):
+def getComputerMove(board, computerLeter):
+    #Given a board and the computer's letter , determine where to move and return that move
+    if computerLeter == "X":
+        playerLetter = 'O'
+
+    else:
+        playerLetter = 'X'
+
+    #Here is the algorithm for our Tic- Tac- Toe AI:
+    #First, check if we can win in the next move
+    for i in range(1, 10):
+        boardCopy = getBoardCopy(board)
+        if isSpaceFree(boardCopy, i):
+            makeMove(boardCopy, computerLeter, i)
+            if isWinner(boardCopy, computerLeter):
+                return i
+    #Check if the player could win on their next move and block them.
+    for i in range(1,10):
+        boardCopy = getBoardCopy(board)
+        if isSpaceFree(boardCopy, i):
+            makeMove(boardCopy, playerLetter, i)
+            if isWinner(boardCopy, playerLetter):
+                return i
+    #Try to take one of the corner , if they are free
+    move = chooseRandomMoveFromList(board,[1,3,7,9])
+    if move != None:
+        return move
+
+    #Try to take the center , if it is free
+    if isSpaceFree(board, 5):
+        return 5
+    #Move on one of the sides
+    return chooseRandomMoveFromList(board, [2,4,6,8])
+
+def isBoardFull(board):
+    #Return True if every space on the board has been taken . Otherwise return False
+    for i in range(1,10):
+        if isSpaceFree(board, i):
+            return False
+
+    return True
+print("Welcome to Tic-Tac-Toe")
+
+while True:
+    #Reset the board
+    theBoard = [' ']*10
+    playerLetter, computerLetter = inputPlayerLetter()
+    turn = whoGuessFirst()
+    print("The "+ turn + ' will go first.')
+    gameIsPlaying = True
+    while gameIsPlaying:
+        if turn == 'player':
+            #players turn
+            drawBoard(theBoard)
+            move = getPlayerMove(theBoard)
+            makeMove(theBoard, playerLetter, move)
+
+            if isWinner(theBoard, playerLetter):
+                drawBoard(theBoard)
+                print("Hooray! You have won the game!")
+                gameIsPlaying = False
+
+            else:
+                if isBoardFull(theBoard):
+                    drawBoard(theBoard)
+                    print("The game is a tie!")
+                else:
+                    turn = 'computer'
+
+
+    else:
+        #Computer's turn
+
+        move = getComputerMove(theBoard, computerLetter)
+        makeMove(theBoard, computerLetter, move)
+
+        if isWinner(theBoard, computerLetter):
+            drawBoard(theBoard)
+            print("The computer has beaten you! You lose." )
+            gameIsPlaying = False
+
+        else:
+             if isBoardFull(theBoard):
+                drawBoard(theBoard)
+                print("The game is a tie")
+                break
+             else:
+                 turn = 'player'
+
+
+
+    print("Do you want to play again?(yes or no)")
+    if not input().lower().startswith('y'):
+        break
